@@ -1,107 +1,111 @@
 {
-  "name": "copilot-toolkit",
-  "displayName": "Copilot Toolkit — AI Code Review & Prompt Automation",
-  "description": "Supercharge GitHub Copilot with smart skill-driven code review, multi-step workflow automation, prompt libraries, and adaptive AI recommendations. Framework-agnostic and fully configurable.",
-  "version": "1.0.0",
-  "publisher": "your-publisher-id",
-  "icon": "assets/icon.png",
-  "engines": {
-    "vscode": "^1.90.0"
-  },
-  "categories": [
-    "AI",
-    "Programming Languages",
-    "Other"
-  ],
-  "keywords": [
-    "copilot",
-    "ai",
-    "code review",
-    "developer tools",
-    "productivity",
-    "prompt",
-    "automation",
-    "llm",
-    "engineering",
-    "refactor",
-    "workflow",
-    "skill",
-    "github copilot",
-    "ai assistant",
-    "code analysis"
-  ],
-  "galleryBanner": {
-    "color": "#1e1e2e",
-    "theme": "dark"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-username/copilot-toolkit"
-  },
-  "bugs": {
-    "url": "https://github.com/your-username/copilot-toolkit/issues"
-  },
-  "homepage": "https://github.com/your-username/copilot-toolkit#readme",
-  "license": "MIT",
-  "main": "./out/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "copilot-toolkit.open",
-        "title": "Copilot Toolkit"
-      },
-      {
-        "command": "copilot-toolkit.resetLearning",
-        "title": "Copilot Toolkit: Reset Learned Preferences"
-      }
-    ],
-    "menus": {
-      "editor/context": [
-        {
-          "command": "copilot-toolkit.open",
-          "group": "navigation",
-          "when": "editorTextFocus"
-        }
-      ]
-    },
-    "configuration": {
-      "title": "Copilot Toolkit",
-      "properties": {
-        "copilotToolkit.promptFolder": {
-          "type": "string",
-          "default": ".copilot/prompts",
-          "description": "Relative path (from workspace root) to the folder containing prompt .md files."
-        },
-        "copilotToolkit.skillFile": {
-          "type": "string",
-          "default": ".github/copilot-instructions.md",
-          "description": "Relative path (from workspace root) to the default Copilot skill/instructions file."
-        },
-        "copilotToolkit.skillsFolder": {
-          "type": "string",
-          "default": ".copilot/skills",
-          "description": "Relative path (from workspace root) to a folder of skill .md files selectable at runtime."
-        },
-        "copilotToolkit.enableLearning": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable adaptive skill recommendation learning. Tracks which skills you use most often to improve future suggestions."
-        }
-      }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "lint": "eslint src"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/vscode": "^1.90.0",
-    "@vscode/vsce": "^3.9.1",
-    "sharp": "^0.34.5",
-    "typescript": "^5.4.0"
-  },
-  "extensionDependencies": []
+	"name": "copilot-toolkit",
+	"displayName": "Copilot Toolkit — AI Code Review & Prompt Automation",
+	"description": "Supercharge GitHub Copilot with smart skill-driven code review, multi-step workflow automation, prompt libraries, and adaptive AI recommendations. Framework-agnostic and fully configurable.",
+	"version": "1.0.0",
+	"publisher": "imsp-vibe-Coder-2596",
+	"icon": "assets/icon.png",
+	"activationEvents": [
+		"onCommand:copilot.openToolkit",
+		"onStartupFinished"
+	],
+	"engines": {
+		"vscode": "^1.90.0"
+	},
+	"categories": [
+		"AI",
+		"Programming Languages",
+		"Other"
+	],
+	"keywords": [
+		"copilot",
+		"ai",
+		"code review",
+		"developer tools",
+		"productivity",
+		"prompt",
+		"automation",
+		"llm",
+		"engineering",
+		"refactor",
+		"workflow",
+		"skill",
+		"github copilot",
+		"ai assistant",
+		"code analysis"
+	],
+	"galleryBanner": {
+		"color": "#1e1e2e",
+		"theme": "dark"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/imsp-vibe-Coder-2596/copilot-toolkit"
+	},
+	"bugs": {
+		"url": "https://github.com/imsp-vibe-Coder-2596/copilot-toolkit/issues"
+	},
+	"homepage": "https://github.com/imsp-vibe-Coder-2596/copilot-toolkit#readme",
+	"license": "MIT",
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "copilot-toolkit.open",
+				"title": "Copilot Toolkit"
+			},
+			{
+				"command": "copilot-toolkit.resetLearning",
+				"title": "Copilot Toolkit: Reset Learned Preferences"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "copilot-toolkit.open",
+					"group": "navigation",
+					"when": "editorTextFocus"
+				}
+			]
+		},
+		"configuration": {
+			"title": "Copilot Toolkit",
+			"properties": {
+				"copilotToolkit.promptFolder": {
+					"type": "string",
+					"default": ".copilot/prompts",
+					"description": "Relative path (from workspace root) to the folder containing prompt .md files."
+				},
+				"copilotToolkit.skillFile": {
+					"type": "string",
+					"default": ".github/copilot-instructions.md",
+					"description": "Relative path (from workspace root) to the default Copilot skill/instructions file."
+				},
+				"copilotToolkit.skillsFolder": {
+					"type": "string",
+					"default": ".copilot/skills",
+					"description": "Relative path (from workspace root) to a folder of skill .md files selectable at runtime."
+				},
+				"copilotToolkit.enableLearning": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable adaptive skill recommendation learning. Tracks which skills you use most often to improve future suggestions."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"lint": "eslint src"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"@types/vscode": "^1.90.0",
+		"@vscode/vsce": "^3.9.1",
+		"sharp": "^0.34.5",
+		"typescript": "^5.4.0"
+	},
+	"extensionDependencies": []
 }

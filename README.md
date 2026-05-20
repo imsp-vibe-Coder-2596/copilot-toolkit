@@ -1,3 +1,4 @@
+[Copilot Toolkit Banner](assets/banner.png)
 # Copilot Toolkit — AI Code Review & Prompt Automation
 
 > **Supercharge GitHub Copilot** with smart skill-driven code review, multi-step workflow automation, dynamic prompt libraries, auto skill detection, and adaptive AI recommendations.
@@ -256,4 +257,4 @@ Adaptive learning records your skill choices
 
 ## Contributing
 
-Issues, feature requests, and PRs are welcome at the [GitHub repository](https://github.com/your-username/copilot-toolkit).
+Issues, feature requests, and PRs are welcome at the [GitHub repository](https://github.com/imsp-vibe-Coder-2596/copilot-toolkit).
