@@ -1,175 +1,414 @@
-[Copilot Toolkit Banner](assets/banner.png)
-# Copilot Toolkit — AI Code Review & Prompt Automation
+﻿# 🧠 Copilot Toolkit — AI-Powered Developer Productivity Intelligence
 
-> **Supercharge GitHub Copilot** with smart skill-driven code review, multi-step workflow automation, dynamic prompt libraries, auto skill detection, and adaptive AI recommendations.
-
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://marketplace.visualstudio.com/items?itemName=your-publisher-id.copilot-toolkit)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.90.0-blueviolet.svg)](https://code.visualstudio.com/)
+> **Stop guessing. Start measuring.**
+> The only AI code assistant that tracks what actually happened — not just what it suggested.
 
 ---
 
 ## Overview
 
-**Copilot Toolkit** is a VS Code extension that adds a powerful orchestration layer on top of GitHub Copilot Chat. Instead of typing raw questions, you compose **skill instruction sets** (your engineering standards) with **reusable prompts** (your review tasks) and send them together as structured, high-quality requests.
+**Copilot Toolkit** is a VS Code extension that supercharges your AI-assisted development workflow with intelligent code analysis, one-click fix application, and a real-time productivity intelligence engine.
 
-It works with **any language, framework, or stack** — the extension reads your project and open file to automatically recommend the right skills, learns your preferences over time, and lets you build multi-step AI workflows with just a few clicks.
+Unlike traditional AI tools that simply generate suggestions and move on, Copilot Toolkit **closes the loop** — it tracks whether fixes were adopted, validates that they worked, and turns every coding session into measurable productivity data.
 
----
-
-## Features
-
-### 🧠 Smart Skill System
-Define your engineering standards as Markdown files. The extension composes them into a rich instruction context sent to Copilot before every request.
-
-- **Default skill** from `.github/copilot-instructions.md` (respects your existing Copilot instructions)
-- **Custom skill sets** from `.copilot/skills/*.md` (security, performance, frontend, backend, etc.)
-- **Multi-skill merge** — select multiple skills; each is labelled and combined with a priority header
-
-### ⚡ Auto Skill Detection
-The extension scans your project and active file to detect:
-
-| Signal | Detected From |
-|--------|--------------|
-| React / Next.js / Vue / Angular | `package.json` dependencies |
-| Node.js server (Express, Fastify…) | `package.json` dependencies |
-| TypeScript | `tsconfig.json` |
-| Python | `requirements.txt`, `pyproject.toml` |
-| Java | `pom.xml` |
-| C# | `*.csproj` |
-| Docker | `Dockerfile`, `docker-compose.yml` |
-| React hooks | `useState`, `useEffect` in active file |
-| SQL / database queries | SQL patterns in active file |
-| Auth / credentials | `password`, `token`, `jwt` patterns |
-| API / HTTP calls | `fetch`, `axios`, `XMLHttpRequest` |
-
-### 🎯 Adaptive Learning
-Copilot Toolkit remembers which skills you choose and learns your patterns:
-
-- Tracks individual skill usage counts
-- Detects frequently used skill combinations
-- Surfaces a "You frequently use: X + Y" hint in the recommendation UI
-- Boosts frequently used skills to the top of the picker
-
-> **Reset anytime** — run `Copilot Toolkit: Reset Learned Preferences` from the Command Palette.
-
-### 📂 Dynamic Prompt Library
-5 built-in prompts are always available, plus unlimited user-defined prompts:
-
-| Built-in Prompt | What it does |
-|----------------|-------------|
-| ⚡ Explain Component | Purpose, data flow, side effects, dependencies |
-| ⚡ Debug Issue | Root cause analysis + concrete fix steps |
-| ⚡ Performance Analysis | Bottlenecks, complexity, memory, optimisations |
-| ⚡ Safe Refactor | Clean code without behaviour change |
-| ⚡ Pre-PR Review | Severity-rated issues before merging |
-
-Add your own by dropping `.md` files into `.copilot/prompts/`.
-
-### 🔄 Multi-Step Workflow Mode
-Select multiple prompts and run them as a **single sequential request** to Copilot Chat. Perfect for thorough reviews that cover multiple angles at once (e.g. Debug + Performance + Security in one shot).
-
-### 👁 Skill Preview
-Before sending your request, open a read-only Markdown tab to inspect the combined skill instructions — so you always know exactly what context Copilot is receiving.
+**Built for:**
+- Individual developers who want to understand and improve their own workflow
+- Engineering teams who need evidence-based productivity metrics
+- Tech leads and managers who want real data on AI tool effectiveness
 
 ---
 
-## Installation
+## The Problem
 
-### From the Marketplace
-1. Open VS Code
-2. Press `Ctrl+Shift+X` (Extensions panel)
-3. Search for **Copilot Toolkit**
-4. Click **Install**
+Modern developers work with AI assistants every day — but the data story is incomplete:
 
-### From VSIX (manual)
-```bash
-code --install-extension copilot-toolkit-1.0.0.vsix
-```
+- 🤷 **Did the suggestion actually help?** No one tracks it.
+- ⏱️ **How much time did AI save today?** Nobody knows.
+- 📉 **Are code quality metrics improving?** Hard to say.
+- 🔁 **What patterns are slowing the team down?** Invisible.
+- 🧠 **Is cognitive burden getting better or worse?** Unmeasured.
 
-**Prerequisite:** GitHub Copilot must be installed and active in your VS Code.
+Current tools offer suggestions. They don't offer **proof**.
 
 ---
 
-## Usage
+## The Solution
 
-### Quick Start
-1. Open any file in your project
-2. Press `Ctrl+Shift+P` → **Copilot Toolkit**  
-   _or_ right-click in the editor → **Copilot Toolkit**
-3. Choose a mode: **Single Prompt** or **Multi-Step Workflow**
-4. Review the smart skill recommendation (or customize manually)
-5. Pick a prompt
-6. Copilot Chat opens with your structured request
+Copilot Toolkit turns your AI assistant into a **productivity intelligence platform**:
 
-### Keyboard Shortcut (optional)
-Add to your `keybindings.json`:
-```json
-{
-  "key": "ctrl+shift+alt+c",
-  "command": "copilot-toolkit.open"
-}
+1. It **suggests** targeted, context-aware code fixes
+2. It **tracks** exactly what you do with each suggestion — apply, edit, or ignore
+3. It **detects** code patterns before and after changes using a diff engine
+4. It **validates** that fixes actually took effect in the file
+5. It **measures** impact across four engineering dimensions
+6. It **surfaces** insights through a live analytics dashboard
+
+The result: **real productivity data**, grounded in actual developer behavior — not assumptions.
+
+---
+
+## ✨ Key Features
+
+### 🔍 Intelligent Code Analysis
+Automatically scans your active file for code quality patterns — null safety gaps, missing error handling, async/await issues, security anti-patterns, and more. Surfaces targeted fix suggestions with full context.
+
+### ⚡ One-Click Fix Application
+Apply any suggested fix directly to your code with a single click. The extension replaces your selected range, updates the diff engine snapshot, and begins validation — all in under a second.
+
+### 📊 Real-Time Productivity Insights Dashboard
+A live WebView panel showing your personal productivity metrics:
+- **Skill Score** (0–10, graded S / A / B / C / D)
+- Fix Adoption Rate with inline progress bars
+- Fix Success Rate (validated fixes vs. applied)
+- Estimated time saved this session
+- Issues detected and patterns found
+- Score formula breakdown by component
+
+### 📈 Four-Dimension Analytics Engine
+Deep-dive productivity analysis across:
+
+| Dimension | What It Measures |
+|-----------|-----------------|
+| **Code Quality** | Fix rate, error reduction %, critical issues prevented, quality score /100 |
+| **Cognitive Load** | Manual steps eliminated, context switch reduction, repetition reduction |
+| **Skill Effectiveness** | Per-skill accuracy, impact score, individual grade S–D |
+| **Combined Impact** | Overall engineering effectiveness /100, verdict, and recommendation |
+
+### 🔄 Behavior Tracking Engine
+Every interaction is captured and persisted across sessions:
+
+| Event | Triggered When |
+|-------|---------------|
+| `fix_suggested` | A fix is presented to you |
+| `fix_applied` | You click Apply |
+| `fix_rejected` | You click Ignore |
+| `fix_validated` | The fix is confirmed effective by diff analysis |
+| `feedback` | You rate a suggestion 👍 or 👎 |
+| `edit_detected` | A file change is detected (debounced 1.5 s) |
+| `pattern_detected` | A new code pattern is identified post-edit |
+
+### 🧮 Composite Skill Scoring
+A weighted formula turns your behavior into an actionable score:
+
+```
+Score (0–10) =
+  Fix Adoption Rate  × 0.4
+  Fix Success Rate   × 0.3
+  Feedback Score     × 0.2
+  Usage Volume       × 0.1
+```
+
+| Score | Grade | Label |
+|-------|-------|-------|
+| 9.0–10.0 | S | Exceptional |
+| 7.0–8.9  | A | Strong |
+| 5.0–6.9  | B | Good |
+| 3.0–4.9  | C | Developing |
+| 0.0–2.9  | D | Early Stage |
+
+### 🤖 Adaptive Skill Recommendations
+The extension learns which skills and prompts you use most, boosts them in future recommendations, and surfaces your top skill combinations — so the tool gets smarter the more you use it.
+
+### 🔁 Multi-Step Workflow Automation
+Chain multiple prompts into structured review workflows — run a security audit, then a performance check, then a test coverage review — all in one session with analytics tracked per step.
+
+### 📚 Custom Prompt and Skill Libraries
+Drop Markdown files into `.copilot/prompts/` and `.copilot/skills/` to build a team-wide library of review prompts and coding standards. Everything is version-controllable and shareable across your entire team.
+
+---
+
+## How It Works
+
+```
+1.  You write or select code in VS Code
+          |
+2.  Copilot Toolkit auto-detects your project stack and active code patterns
+          |
+3.  Smart recommendations surface:
+    "Use Recommended Skills"  or  "Customize Manually"
+          |
+4.  You pick a prompt — single review or multi-step workflow
+          |
+5.  A structured prompt is assembled:
+    [Context Header] + [Skill Instructions] + [Task] + [Your Code]
+          |
+6.  Copilot Chat opens with the full, enriched prompt
+          |
+7.  A Fix Suggestion panel is presented:
+    Side-by-side diff (original vs. suggested)
+    ✅ Apply Fix   ❌ Ignore   👍 Helpful   👎 Not Helpful
+          |
+8.  Your action is logged (applied / rejected / feedback)
+          |
+9.  Edit Tracker watches for the change to land in the file (debounced)
+          |
+10. Diff Engine compares snapshots — confirms adoption, detects patterns
+          |
+11. Metrics Engine computes adoption rate, success rate, time saved
+          |
+12. Scoring Engine produces your composite Skill Score (0–10)
+          |
+13. Insights Dashboard and Analytics Dashboard update in real time
 ```
 
 ---
 
-## Skills Setup
+## 📊 Productivity and Impact Metrics
 
-### Default Skill
-Create `.github/copilot-instructions.md` in your project root. This file is automatically used as the default skill and also feeds GitHub Copilot's native instruction system.
+### Time Saved
+Every applied fix is estimated to save **~8 minutes** of manual debugging, research, and re-writing — measured against actual applied-fix counts, not hypothetical usage.
 
-```markdown
-# My Engineering Standards
+### Fix Adoption Rate
+`fixes applied ÷ fixes suggested`
 
-- Always prefer immutable data structures
-- All async functions must handle errors explicitly
-- Prefer composition over inheritance
-- All public APIs must have JSDoc comments
+Are AI suggestions being used, or ignored? This rate shows you directly — and improves over time as the engine adapts to your preferences.
+
+### Fix Success Rate
+`fixes validated ÷ fixes applied`
+
+Not just applied — actually confirmed to work. The diff engine validates that the fix persisted and introduced expected code patterns.
+
+### Code Quality Score (/100)
+Tracks error reduction percentage, critical issues prevented, and the ratio of quality-improving changes to total edits.
+
+### Cognitive Load Reduction
+Measures the volume of manual steps eliminated, context switches reduced, and repetitive patterns removed — translating AI assistance into concrete mental overhead savings.
+
+### Skill Effectiveness Grade
+Each skill type (security, performance, accessibility, etc.) is graded individually based on accuracy and impact, so you know which review types deliver the most value.
+
+---
+
+## 🏆 What Makes This Unique
+
+| Feature | Copilot Toolkit | Typical AI Assistants |
+|--------|----------------|----------------------|
+| Tracks fix adoption | ✅ Yes | ❌ No |
+| Validates fixes worked | ✅ Yes | ❌ No |
+| Measures time saved | ✅ Behavior-based | ⚠️ Assumed |
+| Feedback loop per suggestion | ✅ Yes | ❌ No |
+| Code diff pattern detection | ✅ Yes | ❌ No |
+| Composite skill scoring | ✅ Yes | ❌ No |
+| Multi-dimension analytics | ✅ Yes | ❌ No |
+| Learns from your usage | ✅ Adaptive | ❌ Static |
+| Custom skill and prompt library | ✅ Yes | ❌ No |
+| Persists data across sessions | ✅ Yes | ❌ No |
+
+---
+
+## 📋 Example Insights
+
+After a typical week of use, your **Productivity Insights Dashboard** might show:
+
+```
+┌──────────────────────────────────────────────────────┐
+│  🧠 Skill Score         8.4 / 10   Grade: A — Strong  │
+├──────────────────────────────────────────────────────┤
+│  🎯 Fix Adoption Rate   82%    (41 of 50 fixes)       │
+│  ✅ Fix Success Rate    90%    (37 validated)          │
+│  ⏱️  Time Saved         328 min  (~5.5 hours)          │
+│  🔍 Issues Detected     50      12 patterns found     │
+│  💬 Feedback Score      88%    (22/25 positive)       │
+│  ✏️  Edits Tracked       147     document changes      │
+└──────────────────────────────────────────────────────┘
 ```
 
-### Additional Skills
-Create `.copilot/skills/` in your project root and add `.md` files:
+And the **Four-Dimension Analytics Report**:
 
 ```
-.copilot/
-└── skills/
-    ├── security.md
-    ├── performance.md
-    ├── frontend.md
-    └── database.md
-```
+Combined Engineering Effectiveness:  87 / 100
 
-**Example: `security.md`**
-```markdown
-# Security Review Standards
+  Code Quality Score     84 / 100
+  Cognitive Load Score   79 / 100
+  Skill Effectiveness    91 / 100
+  Productivity Gain      +34%
 
-- Validate and sanitize all user inputs before processing
-- Never log sensitive data (passwords, tokens, PII)
-- Use parameterized queries — never string-concatenated SQL
-- All auth tokens must have expiry and be rotated after use
-- Check OWASP Top 10 patterns: injection, XSS, CSRF, broken auth
+Verdict:        Strong adoption with measurable quality lift.
+Recommendation: Focus on error-handling skill to push
+                Code Quality score past 90.
 ```
 
 ---
 
-## Prompts Setup
+## 👨‍💻 Developer Benefits
 
-Create `.copilot/prompts/` and add `.md` files for custom prompts:
+- **Know your own impact** — see exactly how many hours of manual work AI saved you this week
+- **Learn faster** — the scoring system shows which habits drive the best results
+- **No workflow disruption** — the tracker runs silently in the background; you code as normal
+- **Customise everything** — bring your own skill files, prompts, and review standards
+- **Carry knowledge forward** — skill data and event history persist across VS Code restarts
+- **Right-click to review** — select any code block and trigger a fix review from the context menu
+
+---
+
+## 🏢 Team and Leadership Benefits
+
+- **Evidence-based ROI** — demonstrate AI tool value with real adoption rates and time-saving data
+- **Identify bottlenecks** — which code patterns keep reappearing? Where is AI least effective?
+- **Track improvement over time** — weekly trends show whether code quality is genuinely improving
+- **Enforce consistent standards** — shared `.copilot/skills/` and `.copilot/prompts/` enforce team-wide review quality
+- **Grade individual skill areas** — understand whether security, performance, or accessibility reviews deliver the highest impact
+- **Data for retrospectives** — bring concrete numbers to sprint reviews and engineering health checks
+
+---
+
+## 🚀 Getting Started
+
+### 1. Install
+
+Search for **"Copilot Toolkit"** in the VS Code Extensions Marketplace, or install from a `.vsix` file manually:
 
 ```
-.copilot/
-└── prompts/
-    ├── api-review.md
-    ├── accessibility.md
-    └── migration-check.md
+Extensions panel  (Ctrl+Shift+X)
+  → ⋯  (More Actions)
+  → Install from VSIX
+  → select copilot-toolkit-x.x.x.vsix
 ```
 
-**Example: `api-review.md`**
-```markdown
-Review this API endpoint based on the provided engineering instructions.
-Check: input validation, authentication, authorization, rate limiting,
-error response format, HTTP status codes, and logging.
+> **Requirements:** VS Code 1.90 or later · GitHub Copilot with Chat enabled
+
+---
+
+### 2. Open the Main Workflow
+
+- Press `Ctrl+Shift+P` → **Copilot Toolkit**
+- Or right-click any open editor → **Copilot Toolkit**
+
+The tool auto-detects your project type and suggests the most relevant skills automatically.
+
+---
+
+### 3. Suggest and Apply a Fix
+
+1. Select a code block in any file
+2. Right-click → **Copilot Toolkit: Suggest Fix for Selection**
+3. Paste the improved version and give it a short title
+4. The **Fix Suggestion Panel** opens with:
+   - Side-by-side original vs. fixed diff
+   - **✅ Apply Fix** — applies directly to your file and logs the event
+   - **❌ Ignore** — logs the rejection and closes the panel
+   - **👍 Helpful / 👎 Not Helpful** — rates suggestion quality for the scoring engine
+
+---
+
+### 4. View Productivity Insights
+
 ```
+Ctrl+Shift+P  →  Copilot Toolkit: Show Productivity Insights
+```
+
+See your live skill score ring (0–10), fix rate progress bars, time saved, and score formula breakdown.
+
+---
+
+### 5. View the Analytics Dashboard
+
+```
+Ctrl+Shift+P  →  Copilot Toolkit: Show Productivity Analytics
+```
+
+Four-dimension deep report: Code Quality, Cognitive Load, Skill Effectiveness, and Combined Impact.
+
+---
+
+### 6. Add Custom Skills and Prompts
+
+```
+your-project/
+├── .github/
+│   └── copilot-instructions.md      ← default skill context
+└── .copilot/
+    ├── skills/
+    │   ├── security.md
+    │   ├── performance.md
+    │   └── accessibility.md
+    └── prompts/
+        ├── api-review.md
+        └── test-coverage-check.md
+```
+
+Each file's content is injected into the structured prompt sent to Copilot Chat.  
+Files are version-controllable and shareable across the entire team.
+
+---
+
+## 🏗️ Architecture Highlights
+
+Copilot Toolkit is built on a **modular, event-driven, metrics-based architecture**:
+
+```
+┌────────────────────────────────────────────────────┐
+│                   extension.ts                      │
+│  Command registry · Edit tracker · State management │
+└──────┬──────────────────────┬───────────────────────┘
+       │                      │
+┌──────▼───────┐    ┌─────────▼────────┐
+│   UI Layer   │    │  Service Layer   │
+│              │    │                  │
+│ fixSuggestion│    │ editTracker.ts   │
+│ dashboard    │    │ diffEngine.ts    │
+│ analyticsPanel    │ logger.ts        │
+└──────────────┘    │ metricsEngine.ts │
+                    │ scoringEngine.ts │
+                    └─────────┬────────┘
+                              │
+                    ┌─────────▼────────┐
+                    │   Data Layer     │
+                    │                  │
+                    │  analytics.ts    │
+                    │  globalState     │
+                    │  (persisted)     │
+                    └──────────────────┘
+```
+
+| Module | Responsibility |
+|--------|---------------|
+| `editTracker.ts` | Debounced file change detection, pattern scan trigger |
+| `diffEngine.ts` | Snapshot store, 9 regex code-pattern detectors |
+| `logger.ts` | Event capture, session and globalState persistence |
+| `metricsEngine.ts` | Fix adoption, success rate, feedback score, time saved |
+| `scoringEngine.ts` | Weighted composite skill score 0–10, grade classification |
+| `analytics.ts` | Four-dimension deep analytics, weekly trends, daily summaries |
+| `applyFix.ts` | Fix application, snapshot capture, post-apply validation |
+| `fixSuggestion.ts` | Fix Suggestion WebView — diff view, apply/ignore, feedback |
+| `dashboard.ts` | Productivity Insights WebView — live score and metrics |
+| `analyticsPanel.ts` | Analytics Dashboard WebView — 4-dimension deep report |
+
+---
+
+## 🗺️ Roadmap
+
+| Feature | Status |
+|---------|--------|
+| AI code analysis and fix suggestions | ✅ Complete |
+| Fix Suggestion UI (apply / ignore / feedback) | ✅ Complete |
+| Edit tracker and diff engine | ✅ Complete |
+| Metrics engine (adoption, success, time saved) | ✅ Complete |
+| Composite skill scoring (0–10, S–D) | ✅ Complete |
+| Productivity Insights Dashboard | ✅ Complete |
+| Four-dimension Analytics Dashboard | ✅ Complete |
+| Adaptive learning engine | ✅ Complete |
+| Multi-step workflow automation | ✅ Complete |
+| Custom skill and prompt libraries | ✅ Complete |
+| Team-level aggregated metrics | 🔜 Planned |
+| Git integration (per-commit analysis) | 🔜 Planned |
+| CI/CD quality gate metrics export | 🔜 Planned |
+| LLM model comparison analytics | 🔜 Planned |
+| Shared team skill leaderboard | 🔜 Planned |
+
+---
+
+## Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `Copilot Toolkit` | Open the main workflow — skill pick, prompt pick, or multi-step workflow |
+| `Copilot Toolkit: Suggest Fix for Selection` | Fix Suggestion panel for selected code — diff, apply/ignore, feedback |
+| `Copilot Toolkit: Apply Suggested Fix` | Apply a queued fix to the current selection, or paste one manually |
+| `Copilot Toolkit: Show Productivity Insights` | Live insights — skill score, fix rates, time saved, metric bars |
+| `Copilot Toolkit: Show Productivity Analytics` | Four-dimension deep analytics report |
+| `Copilot Toolkit: Reset Learned Preferences` | Clear adaptive skill learning history |
+| `Copilot Toolkit: Reset Analytics Data` | Wipe all analytics history |
 
 ---
 
@@ -177,84 +416,24 @@ error response format, HTTP status codes, and logging.
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `copilotToolkit.promptFolder` | `.copilot/prompts` | Path to user prompt `.md` files |
-| `copilotToolkit.skillFile` | `.github/copilot-instructions.md` | Path to default skill file |
-| `copilotToolkit.skillsFolder` | `.copilot/skills` | Path to additional skill `.md` files |
-| `copilotToolkit.enableLearning` | `true` | Enable adaptive learning |
-
-All paths are relative to the workspace root.
-
-**Example `settings.json`:**
-```json
-{
-  "copilotToolkit.skillsFolder": ".ai/skills",
-  "copilotToolkit.promptFolder": ".ai/prompts",
-  "copilotToolkit.enableLearning": true
-}
-```
-
----
-
-## Folder Structure
-
-```
-your-project/
-├── .github/
-│   └── copilot-instructions.md    ← default skill
-└── .copilot/
-    ├── skills/
-    │   ├── security.md
-    │   ├── performance.md
-    │   └── frontend.md
-    └── prompts/
-        ├── api-review.md
-        └── migration-check.md
-```
-
----
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `Copilot Toolkit` | Open the main workflow picker |
-| `Copilot Toolkit: Reset Learned Preferences` | Clear all adaptive learning data |
-
----
-
-## How It Works
-
-```
-You trigger Copilot Toolkit
-        ↓
-Auto-detect project tech stack + active code patterns
-        ↓
-Smart recommendation: "Use Recommended Skills" or "Customize Manually"
-        ↓
-Pick prompt(s) — single or multi-step workflow
-        ↓
-Build structured prompt: [Header] + [Skills] + [Task] + [Code]
-        ↓
-Open GitHub Copilot Chat with the full prompt
-        ↓
-Adaptive learning records your skill choices
-```
-
----
-
-## Requirements
-
-- **VS Code** `^1.90.0`
-- **GitHub Copilot** extension (installed and authenticated)
+| `copilotToolkit.promptFolder` | `.copilot/prompts` | Folder containing custom prompt `.md` files |
+| `copilotToolkit.skillFile` | `.github/copilot-instructions.md` | Default skill and instructions file |
+| `copilotToolkit.skillsFolder` | `.copilot/skills` | Folder containing selectable skill `.md` files |
+| `copilotToolkit.enableLearning` | `true` | Enable adaptive skill recommendation learning |
 
 ---
 
 ## License
 
-[MIT](LICENSE) © 2024 Copilot Toolkit Contributors
+[MIT](LICENSE) — free to use, modify, and distribute.
 
 ---
 
-## Contributing
+## 🎯 Final Word
 
-Issues, feature requests, and PRs are welcome at the [GitHub repository](https://github.com/imsp-vibe-Coder-2596/copilot-toolkit).
+Most developer tools tell you what to do.  
+**Copilot Toolkit tells you what is actually working.**
+
+It is not just an AI assistant — it is a **productivity intelligence platform** that grows smarter with every session, surfaces evidence your team can act on, and transforms the invisible work of software engineering into clear, measurable impact.
+
+> *Write better code. Know your impact. Ship with confidence.*

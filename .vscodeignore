@@ -10,3 +10,4 @@ tsconfig.json
 !out/**
 **/.DS_Store
 .vscodeignore
+assets/banner.png

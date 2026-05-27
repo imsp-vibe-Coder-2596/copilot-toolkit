@@ -2,7 +2,7 @@
 	"name": "copilot-toolkit",
 	"displayName": "Copilot Toolkit — AI Code Review & Prompt Automation",
 	"description": "Supercharge GitHub Copilot with smart skill-driven code review, multi-step workflow automation, prompt libraries, and adaptive AI recommendations. Framework-agnostic and fully configurable.",
-	"version": "1.0.0",
+	"version": "1.2.0",
 	"publisher": "imsp-vibe-Coder-2596",
 	"icon": "assets/icon.png",
 	"activationEvents": [
@@ -48,8 +48,7 @@
 	"homepage": "https://github.com/imsp-vibe-Coder-2596/copilot-toolkit#readme",
 	"license": "MIT",
 	"main": "./out/extension.js",
-	"contributes": {
-		"commands": [
+	"contributes": {		"commands": [
 			{
 				"command": "copilot-toolkit.open",
 				"title": "Copilot Toolkit"
@@ -57,14 +56,36 @@
 			{
 				"command": "copilot-toolkit.resetLearning",
 				"title": "Copilot Toolkit: Reset Learned Preferences"
+			},
+			{
+				"command": "copilot-toolkit.showAnalytics",
+				"title": "Copilot Toolkit: Show Productivity Analytics"
+			},			{
+				"command": "copilot-toolkit.resetAnalytics",
+				"title": "Copilot Toolkit: Reset Analytics Data"
+			},
+			{
+				"command": "copilot-toolkit.applyFix",
+				"title": "Copilot Toolkit: Apply Suggested Fix"
+			},			{
+				"command": "copilot-toolkit.showInsights",
+				"title": "Copilot Toolkit: Show Productivity Insights"
+			},
+			{
+				"command": "copilot-toolkit.suggestFix",
+				"title": "Copilot Toolkit: Suggest Fix for Selection"
 			}
-		],
-		"menus": {
+		],		"menus": {
 			"editor/context": [
 				{
 					"command": "copilot-toolkit.open",
 					"group": "navigation",
 					"when": "editorTextFocus"
+				},
+				{
+					"command": "copilot-toolkit.suggestFix",
+					"group": "navigation",
+					"when": "editorHasSelection"
 				}
 			]
 		},
