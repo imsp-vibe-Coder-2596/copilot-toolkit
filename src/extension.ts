@@ -1,6 +1,13 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { recordExecution, loadAnalytics, buildFullReport, resetAnalytics } from './analytics';
+import { showAnalyticsDashboard } from './analyticsPanel';
+import { showInsightsDashboard } from './ui/dashboard';
+import { showFixSuggestion } from './ui/fixSuggestion';
+import { activateEditTracker } from './services/editTracker';
+import { logEvent, flushToState } from './services/logger';
+import { applyFixCommand } from './commands/applyFix';
 
 // ─── Prompt item type ─────────────────────────────────────────────────────────
 
@@ -714,9 +721,27 @@ async function sendToCopilot(prompt: string): Promise<void> {
   }
 }
 
+// ─── Analytics helpers ────────────────────────────────────────────────────────
+
+/**
+ * Extracts individual skill names from a merged skill string.
+ * Falls back to ['default'] if no labels are found.
+ */
+function extractSkillNames(mergedSkill: string): string[] {
+  const matches = mergedSkill.match(/SKILL \d+: (.+?) ={4}/g);
+  if (matches) {
+    return matches.map(m => m.replace(/SKILL \d+: /, '').replace(/ ={4}/, '').trim().toLowerCase());
+  }
+  return ['default'];
+}
+
 // ─── Workflow handler ─────────────────────────────────────────────────────────
 
-async function runWorkflowMode(active: ActiveCode, state: vscode.Memento): Promise<void> {
+async function runWorkflowMode(
+  active: ActiveCode,
+  state: vscode.Memento,
+  selectedSkillNames: string[] = []
+): Promise<{ skillNames: string[]; promptLabel: string } | undefined> {
   // Step 1 — pick skills (with smart recommendations from active code)
   const skill = await pickSkills(active.code, state);
 
@@ -724,7 +749,7 @@ async function runWorkflowMode(active: ActiveCode, state: vscode.Memento): Promi
   const allPrompts = loadAllPrompts();
   if (allPrompts.length === 0) {
     vscode.window.showWarningMessage('Copilot Toolkit: No prompts available for workflow.');
-    return;
+    return undefined;
   }
 
   const selected = await vscode.window.showQuickPick(allPrompts, {
@@ -735,12 +760,19 @@ async function runWorkflowMode(active: ActiveCode, state: vscode.Memento): Promi
   });
   if (!selected || selected.length === 0) {
     vscode.window.showWarningMessage('Copilot Toolkit: No prompts selected for workflow.');
-    return;
+    return undefined;
   }
 
   // Step 3 — build and send
   const finalPrompt = buildWorkflowPrompt(skill, selected, active.code, active.fileName, active.languageId);
   await sendToCopilot(finalPrompt);
+
+  // Extract skill names from merged skill string for analytics
+  const skillNames = extractSkillNames(skill);
+  const promptLabel = selected.length === 1
+    ? selected[0].label
+    : `Workflow: ${selected.map(p => p.label.replace(/^[⚡📂]\s[\w-]+:\s/, '')).join(' → ')}`;
+  return { skillNames, promptLabel };
 }
 
 // ─── Mode selector ────────────────────────────────────────────────────────────
@@ -774,11 +806,92 @@ async function selectMode(): Promise<ModeItem | undefined> {
 export function activate(context: vscode.ExtensionContext): void {
   const state = context.globalState;
 
+  // ── Edit tracker (must be first so it catches all edits) ───────────────────
+  context.subscriptions.push(activateEditTracker(context));
+
   // ── Reset learning command ──────────────────────────────────────────────
   context.subscriptions.push(
     vscode.commands.registerCommand('copilot-toolkit.resetLearning', async () => {
       await state.update(LEARNING_KEY, undefined);
       vscode.window.showInformationMessage('Copilot Toolkit: Learned skill preferences have been reset.');
+    })
+  );
+
+  // ── Analytics dashboard command ─────────────────────────────────────────
+  context.subscriptions.push(
+    vscode.commands.registerCommand('copilot-toolkit.showAnalytics', () => {
+      const data = loadAnalytics(state);
+      const report = buildFullReport(data);
+      showAnalyticsDashboard(report, context);
+    })
+  );
+  // ── Reset analytics command ─────────────────────────────────────────────
+  context.subscriptions.push(
+    vscode.commands.registerCommand('copilot-toolkit.resetAnalytics', async () => {
+      const confirm = await vscode.window.showWarningMessage(
+        'Reset all Copilot Toolkit analytics data? This cannot be undone.',
+        { modal: true }, 'Reset'
+      );
+      if (confirm === 'Reset') {
+        await resetAnalytics(state);
+        vscode.window.showInformationMessage('Copilot Toolkit: Analytics data has been reset.');
+      }
+    })
+  );
+
+  // ── Apply fix command ───────────────────────────────────────────────────
+  context.subscriptions.push(
+    vscode.commands.registerCommand('copilot-toolkit.applyFix', applyFixCommand)
+  );
+  // ── Productivity insights dashboard ────────────────────────────────────
+  context.subscriptions.push(
+    vscode.commands.registerCommand('copilot-toolkit.showInsights', () => {
+      showInsightsDashboard(context);
+    })
+  );
+
+  // ── Suggest fix for current selection ──────────────────────────────────
+  context.subscriptions.push(
+    vscode.commands.registerCommand('copilot-toolkit.suggestFix', async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showWarningMessage('Copilot Toolkit: Open a file first.');
+        return;
+      }
+      if (editor.selection.isEmpty) {
+        vscode.window.showWarningMessage('Copilot Toolkit: Select the code you want to review for a fix.');
+        return;
+      }
+
+      const selectedText = editor.document.getText(editor.selection);
+
+      // Ask the user to describe / paste the fix
+      const fixCode = await vscode.window.showInputBox({
+        title: 'Copilot Toolkit — Suggest Fix',
+        prompt: 'Paste the improved / fixed version of the selected code',
+        placeHolder: 'Fixed code...',
+        ignoreFocusOut: true,
+        value: selectedText,
+      });
+      if (!fixCode) { return; }
+
+      const title = await vscode.window.showInputBox({
+        title: 'Copilot Toolkit — Fix Title',
+        prompt: 'Give this fix a short description (e.g. "Add null-check")',
+        placeHolder: 'Fix description...',
+        ignoreFocusOut: true,
+      });
+      if (!title) { return; }
+
+      showFixSuggestion({
+        id: `fix-${Date.now()}`,
+        title,
+        description: `Review and apply this suggested improvement to your selected code.`,
+        originalCode: selectedText,
+        fixCode,
+        fileUri: editor.document.uri.toString(),
+        range: editor.selection,
+      }, context);
     })
   );
 
@@ -801,7 +914,16 @@ export function activate(context: vscode.ExtensionContext): void {
 
     // 3. Branch on mode
     if (mode.mode === 'workflow') {
-      await runWorkflowMode(active, state);
+      const result = await runWorkflowMode(active, state);
+      if (result) {
+        await recordExecution(state, {
+          mode: 'workflow',
+          skillNames: result.skillNames,
+          promptLabel: result.promptLabel,
+          languageId: active.languageId,
+          fileName: active.fileName,
+        });
+      }
       return;
     }
 
@@ -823,9 +945,20 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const finalPrompt = buildFinalPrompt(skill, picked.body, active.code, active.fileName, active.languageId);
     await sendToCopilot(finalPrompt);
-  });
 
-  context.subscriptions.push(disposable);
+    // Record analytics
+    await recordExecution(state, {
+      mode: 'single',
+      skillNames: extractSkillNames(skill),
+      promptLabel: picked.label,
+      languageId: active.languageId,
+      fileName: active.fileName,
+    });
+  });  context.subscriptions.push(disposable);
+  // Flush logger to globalState when extension deactivates
+  context.subscriptions.push({
+    dispose() { flushToState(state); },
+  });
 }
 
 export function deactivate(): void {}
