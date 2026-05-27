@@ -402,11 +402,23 @@ function loadSkills(): SkillItem[] {
     skillName: 'default',
   });
 
+  const root = getWorkspaceRoot();
+  if (!root) {
+    // No workspace open — only the default skill is available
+    return items;
+  }
+
   const skillsFolder = getConfigPath('skillsFolder');
-  if (!skillsFolder || !fs.existsSync(skillsFolder)) { return items; }
+  if (!skillsFolder || !fs.existsSync(skillsFolder)) {
+    // Folder doesn't exist yet — silently return just the default
+    return items;
+  }
 
   try {
     const files = fs.readdirSync(skillsFolder).filter(f => f.endsWith('.md'));
+    if (files.length === 0) {
+      return items; // folder exists but is empty
+    }
     for (const file of files) {
       const filePath = path.join(skillsFolder, file);
       try {
@@ -415,7 +427,7 @@ function loadSkills(): SkillItem[] {
         const name = path.basename(file, '.md');
         items.push({
           label: `🎯 Skill: ${name}`,
-          description: `From: ${path.relative(getWorkspaceRoot() ?? '', filePath)}`,
+          description: `From: .copilot/skills/${file}`,
           content,
           source: 'file',
           skillName: name.toLowerCase(),
@@ -531,10 +543,11 @@ async function showSkillPicker(code: string, state: vscode.Memento): Promise<str
   const autoSelected = autoSelectSkills(available, scores);
 
   // ── Step 1: Smart recommendation UI ──────────────────────────────────────
-  const hasAvailableSkills = available.length > 1;
+  // Only show recommendation UI if there are user-defined skill files loaded
+  const hasUserSkills = available.length > 1; // length > 1 means at least one file skill exists
   let useCustomPicker = false;
 
-  if (scores.length > 0 && hasAvailableSkills) {
+  if (scores.length > 0 && hasUserSkills) {
     const comboHint = isLearningEnabled() ? getTopComboHint(learningData) : undefined;
     const choice = await showRecommendationUI(scores, comboHint);
     if (choice === 'cancel') { return loadDefaultSkill(); }
@@ -543,36 +556,52 @@ async function showSkillPicker(code: string, state: vscode.Memento): Promise<str
     useCustomPicker = true;
   }
 
-  if (!useCustomPicker && autoSelected.size > 0) {
+  // ── "Use Recommended" path ────────────────────────────────────────────────
+  if (!useCustomPicker) {
     const selected = available.filter(s => autoSelected.has(s.skillName));
     if (selected.length > 0) {
       await trackSkillUsage(state, selected.map(s => s.skillName));
       return mergeSkills(selected);
     }
+    // None of the recommended skill names matched any loaded file —
+    // fall back to the default skill with a helpful hint
+    vscode.window.showInformationMessage(
+      `Copilot Toolkit: Recommended skills (${scores.slice(0, 3).map(s => s.skillName).join(', ')}) ` +
+      `didn't match any skill files in .copilot/skills/. Using default instructions. ` +
+      `Tip: Create .md files named after these skills to enable full matching.`
+    );
+    return loadDefaultSkill();
   }
 
   // ── Step 2: Full manual picker ────────────────────────────────────────────
-  const preSelected = available.filter(i => autoSelected.has(i.skillName));
+  // Build display items with recommendation badges
   const itemsWithHints: SkillItem[] = available.map(item => {
     const score = scores.find(s => s.skillName === item.skillName);
     const usageCount = learningData.skillUsage[item.skillName] ?? 0;
-    let badge = '';
-    if (autoSelected.has(item.skillName)) { badge += ' ✅ recommended'; }
-    if (isLearningEnabled() && usageCount > 0) { badge += ` · used ${usageCount}×`; }
+    const badges: string[] = [];
+    if (autoSelected.has(item.skillName)) { badges.push('✅ recommended'); }
+    if (isLearningEnabled() && usageCount > 0) { badges.push(`used ${usageCount}×`); }
     return {
       ...item,
-      description: badge ? `${item.description ?? ''}${badge}`.trim() : item.description,
+      // IMPORTANT: keep description as a new string so the object is distinct,
+      // but we track which items to pre-select by index below — NOT by reference
+      description: badges.length
+        ? `${item.description ?? ''} · ${badges.join(' · ')}`.trim()
+        : item.description,
       detail: score ? `  Signals: ${score.reasons.slice(0, 2).join(' · ')}` : undefined,
     };
   });
 
   const qp = vscode.window.createQuickPick<SkillItem>();
-  qp.title = `Copilot Toolkit — Select Skills (${preSelected.length} recommended)`;
+  qp.title = `Copilot Toolkit — Select Skills (${autoSelected.size} auto-detected)`;
   qp.placeholder = 'Pick one or more skill instruction sets (Escape = use default)...';
   qp.canSelectMany = true;
   qp.matchOnDescription = true;
   qp.items = itemsWithHints;
-  qp.selectedItems = preSelected;
+
+  // ⚠️ FIX: pre-selection must reference the SAME objects that are in qp.items,
+  //   not the originals from `available`. Use the itemsWithHints array directly.
+  qp.selectedItems = itemsWithHints.filter(item => autoSelected.has(item.skillName));
 
   const selected: SkillItem[] = await new Promise(resolve => {
     qp.onDidAccept(() => { resolve([...qp.selectedItems]); qp.dispose(); });
@@ -633,10 +662,11 @@ function loadAllPrompts(): PromptItem[] {
         const filePath = path.join(promptFolder, file);
         try {
           const body = fs.readFileSync(filePath, 'utf8').trim();
+          if (!body) { continue; }
           const name = path.basename(file, '.md');
           userPrompts.push({
             label: `📂 User: ${name}`,
-            description: `From: ${path.relative(getWorkspaceRoot() ?? '', filePath)}`,
+            description: `From: .copilot/prompts/${file}`,
             body,
             source: 'file',
           });
