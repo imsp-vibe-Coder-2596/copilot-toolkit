@@ -2,7 +2,7 @@
 	"name": "copilot-toolkit",
 	"displayName": "Copilot Toolkit — AI Code Review & Prompt Automation",
 	"description": "Supercharge GitHub Copilot with smart skill-driven code review, multi-step workflow automation, prompt libraries, and adaptive AI recommendations. Framework-agnostic and fully configurable.",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"publisher": "imsp-vibe-Coder-2596",
 	"icon": "assets/icon.png",
 	"activationEvents": [
