@@ -55,8 +55,52 @@ function getBuiltInPrompts(): PromptItem[] {
 
 // ─── Config helpers ───────────────────────────────────────────────────────────
 
+/**
+ * Resolves the project root using multiple strategies so skills/prompts work
+ * in all VS Code modes: workspace file, loose folder, single file open.
+ *
+ * Priority order:
+ *  1. First workspace folder  (standard workspace / multi-root)
+ *  2. Walk up from the active editor file looking for a project root marker
+ *     (.git, package.json, tsconfig.json, pom.xml, pyproject.toml, .csproj)
+ *  3. Directory of the active editor file (last resort)
+ */
 function getWorkspaceRoot(): string | undefined {
-  return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  // Strategy 1 — VS Code workspace folder (most reliable)
+  const wsFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (wsFolder) { return wsFolder; }
+
+  // Strategy 2 & 3 — derive from active editor
+  const activeFile = vscode.window.activeTextEditor?.document?.uri;
+  if (!activeFile || activeFile.scheme !== 'file') { return undefined; }
+
+  const ROOT_MARKERS = [
+    '.git', 'package.json', 'tsconfig.json', 'pom.xml',
+    'pyproject.toml', 'requirements.txt', 'Cargo.toml', 'go.mod', '.sln',
+  ];
+
+  let dir = path.dirname(activeFile.fsPath);
+  // Walk up a maximum of 10 levels to find a project root marker
+  for (let i = 0; i < 10; i++) {
+    const hasMarker = ROOT_MARKERS.some(m => {
+      try {
+        // .csproj — check for any file matching the extension
+        if (m === '.sln') {
+          return fs.readdirSync(dir).some(f => f.endsWith('.sln') || f.endsWith('.csproj'));
+        }
+        return fs.existsSync(path.join(dir, m));
+      } catch { return false; }
+    });
+
+    if (hasMarker) { return dir; }
+
+    const parent = path.dirname(dir);
+    if (parent === dir) { break; } // reached filesystem root
+    dir = parent;
+  }
+
+  // Strategy 3 — just use the file's own directory
+  return path.dirname(activeFile.fsPath);
 }
 
 function getConfigPath(key: 'promptFolder' | 'skillFile' | 'skillsFolder'): string | undefined {
