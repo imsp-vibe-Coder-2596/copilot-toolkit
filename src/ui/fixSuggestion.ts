@@ -6,8 +6,8 @@
  * The panel calls back into extension commands to action the result.
  */
 import * as vscode from 'vscode';
-import { setPendingFix, PendingFix } from '../commands/applyFix';
 import { logEvent } from '../services/logger';
+import { storeSnapshot, detectNewPatterns } from '../services/diffEngine';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,10 +25,11 @@ export interface FixSuggestion {
 }
 
 // ---------------------------------------------------------------------------
-// Panel singleton
+// Panel singleton + listener management
 // ---------------------------------------------------------------------------
 
 let _panel: vscode.WebviewPanel | undefined;
+let _msgDisposable: vscode.Disposable | undefined;   // current onDidReceiveMessage handle
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -59,67 +60,158 @@ export function showFixSuggestion(
       vscode.ViewColumn.Beside,
       { enableScripts: true },
     );
-    _panel.onDidDispose(() => { _panel = undefined; }, null, context.subscriptions);
+    _panel.onDidDispose(() => {
+      _msgDisposable?.dispose();
+      _msgDisposable = undefined;
+      _panel = undefined;
+    }, null, context.subscriptions);
   }
 
   _panel.webview.html = _buildHtml(suggestion);
 
-  _panel.webview.onDidReceiveMessage(async (msg: { command: string }) => {
-    switch (msg.command) {
+  // ── FIX: always dispose the previous listener before adding a new one ──
+  // Without this, each call to showFixSuggestion stacks another listener.
+  // When Apply is clicked, all stacked listeners fire — the first clears
+  // _pendingFix so the next sees undefined and falls back to the input box.
+  _msgDisposable?.dispose();
+  _msgDisposable = _panel.webview.onDidReceiveMessage(
+    async (msg: { command: string }) => {
+      switch (msg.command) {
 
-      case 'apply': {
-        const pendingFix: PendingFix = {
-          id: suggestion.id,
-          fixText: suggestion.fixCode,
-          description: suggestion.title,
-          fileUri: suggestion.fileUri,
-          range: suggestion.range,
-        };
-        setPendingFix(pendingFix);
-        await vscode.commands.executeCommand('copilot-toolkit.applyFix');
-        _panel?.dispose();
-        break;
-      }
+        case 'apply': {
+          await _applyFixDirectly(suggestion);
+          _panel?.dispose();
+          break;
+        }
 
-      case 'ignore': {
-        logEvent('fix_rejected', {
-          fixId: suggestion.id,
-          fileName: suggestion.fileUri.split(/[\\/]/).pop(),
-          patternName: suggestion.patternName,
-        });
-        vscode.window.showInformationMessage('Copilot Toolkit: Fix ignored.');
-        _panel?.dispose();
-        break;
-      }
+        case 'ignore': {
+          logEvent('fix_rejected', {
+            fixId: suggestion.id,
+            fileName: suggestion.fileUri.split(/[\\/]/).pop(),
+            patternName: suggestion.patternName,
+          });
+          vscode.window.showInformationMessage('Copilot Toolkit: Fix ignored.');
+          _panel?.dispose();
+          break;
+        }
 
-      case 'feedback_positive': {
-        logEvent('feedback', {
-          fixId: suggestion.id,
-          feedbackPositive: true,
-          patternName: suggestion.patternName,
-        });
-        vscode.window.showInformationMessage('Copilot Toolkit: Thanks for the feedback! 👍');
-        _updateFeedbackState('positive');
-        break;
-      }
+        case 'feedback_positive': {
+          logEvent('feedback', {
+            fixId: suggestion.id,
+            feedbackPositive: true,
+            patternName: suggestion.patternName,
+          });
+          vscode.window.showInformationMessage('Copilot Toolkit: Thanks for the feedback! 👍');
+          _updateFeedbackState('positive');
+          break;
+        }
 
-      case 'feedback_negative': {
-        logEvent('feedback', {
-          fixId: suggestion.id,
-          feedbackPositive: false,
-          patternName: suggestion.patternName,
-        });
-        vscode.window.showInformationMessage('Copilot Toolkit: Feedback recorded. 👎');
-        _updateFeedbackState('negative');
-        break;
+        case 'feedback_negative': {
+          logEvent('feedback', {
+            fixId: suggestion.id,
+            feedbackPositive: false,
+            patternName: suggestion.patternName,
+          });
+          vscode.window.showInformationMessage('Copilot Toolkit: Feedback recorded. 👎');
+          _updateFeedbackState('negative');
+          break;
+        }
       }
-    }
-  }, null, context.subscriptions);
+    },
+    null,
+    context.subscriptions,
+  );
 }
 
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Applies the fix directly — no command roundtrip, no stale _pendingFix state.
+ *
+ * Key fixes vs the old approach:
+ *  1. Opens the document explicitly by URI so the correct file is always targeted.
+ *  2. Shows it in ViewColumn.One so it is the active editor and edits land correctly.
+ *  3. Re-reads the live selection AFTER the editor is focused — avoids stale Range.
+ *  4. Falls back to the stored range only when the live selection is empty.
+ */
+async function _applyFixDirectly(suggestion: FixSuggestion): Promise<void> {
+  // 1. Open target document
+  let document: vscode.TextDocument;
+  try {
+    document = await vscode.workspace.openTextDocument(vscode.Uri.parse(suggestion.fileUri));
+  } catch {
+    vscode.window.showErrorMessage('Copilot Toolkit: Could not open the target file.');
+    return;
+  }
+
+  // 2. Show it as the active editor in column 1 so edits are unambiguous
+  const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.One, false);
+
+  // 3. Determine target range:
+  //    - prefer the live editor selection (user may have adjusted it after opening the panel)
+  //    - fall back to the stored range from when the suggestion was created
+  //    - if neither, warn and abort
+  let targetRange: vscode.Range | vscode.Selection;
+  if (!editor.selection.isEmpty) {
+    targetRange = editor.selection;
+  } else if (suggestion.range && !suggestion.range.isEmpty) {
+    targetRange = suggestion.range;
+  } else {
+    vscode.window.showWarningMessage(
+      'Copilot Toolkit: No selection found. Please re-select the code to replace, then click Apply Fix again.'
+    );
+    return;
+  }
+
+  // 4. Snapshot before editing (for diff engine)
+  storeSnapshot(suggestion.fileUri, document.getText());
+
+  // 5. Apply the edit
+  const success = await editor.edit(editBuilder => {
+    editBuilder.replace(targetRange, suggestion.fixCode);
+  });
+
+  if (!success) {
+    vscode.window.showErrorMessage('Copilot Toolkit: Edit failed — the document may have changed. Please try again.');
+    return;
+  }
+
+  // 6. Log and confirm
+  logEvent('fix_applied', {
+    fixId: suggestion.id,
+    fileName: document.fileName.split(/[\\/]/).pop(),
+    languageId: document.languageId,
+    meta: { description: suggestion.title },
+  });
+
+  vscode.window.showInformationMessage(`✅ Copilot Toolkit: Fix applied — "${suggestion.title}"`);
+
+  // 7. Validate after document settles
+  setTimeout(() => {
+    const updatedText = document.getText();
+    const newPatterns = detectNewPatterns(suggestion.fileUri, updatedText);
+    for (const match of newPatterns) {
+      logEvent('pattern_detected', {
+        patternName: match.pattern.name,
+        meta: { description: match.pattern.description },
+      });
+    }
+    const isValidated =
+      newPatterns.length > 0 ||
+      suggestion.fixCode.split('\n')
+        .filter(l => l.trim().length > 4)
+        .some(line => updatedText.includes(line.trim()));
+
+    if (isValidated) {
+      logEvent('fix_validated', {
+        fixId: suggestion.id,
+        meta: { patternsFound: newPatterns.map(m => m.pattern.name) },
+      });
+    }
+  }, 800);
+}
 
 function _updateFeedbackState(state: 'positive' | 'negative'): void {
   if (!_panel) { return; }
